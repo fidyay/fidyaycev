@@ -1,9 +1,9 @@
-import React from "react"
+import React, {memo} from "react"
 import { View, Text, TouchableNativeFeedback, StyleSheet } from "react-native"
 import Checkbox from "../svg_components/Checkbox.jsx"
 import MusicalNote from "../svg_components/MusicalNote.jsx"
 
-export default ({songName, checked, fontFamily, onPress}) => {
+export default memo(({songName, checked, fontFamily, onPress}) => {
     return (
     <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple('rgba(119, 122, 120 .5)', false)}
     onPress={onPress}>
@@ -18,7 +18,10 @@ export default ({songName, checked, fontFamily, onPress}) => {
         </View>
     </TouchableNativeFeedback>
     )
-}
+}, (prevProps, nextProps) => {
+    if (prevProps.checked === nextProps.checked && prevProps.fontFamily === nextProps.fontFamily) return true
+    return false
+})
 
 const styles = StyleSheet.create({
     file: {

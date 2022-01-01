@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableNativeFeedback, FlatList, StyleSheet, LayoutAnimation} from 'react-native';
 import Checkbox from '../svg_components/Checkbox.jsx';
 import { useFonts } from 'expo-font';
@@ -7,39 +7,23 @@ import CreateNewPlaylist from "./CreateNewPlaylist.js";
 import OpenCloseMenu from "../svg_components/OpenCloseMenu.jsx";
 import font from "../functions/font.js";
 import { useNavigation } from '@react-navigation/native'
+import { observer } from 'mobx-react-lite'
+import state from '../global-state/state.js'
 
 
-export default ({opened, closeMenu}) => {
+
+export default observer(({opened, closeMenu, playlistsObj}) => {
     const navigation = useNavigation()
     const [deletePlaylists, setDeletePlaylists] = useState(false)
     const [openedPlaylist, setOpenedPlaylist] = useState('')
     const [playlistsToDelete, setPlaylistsToDelete] = useState([])
     const [createPlaylist, setCreatePlaylist] = useState(false)
-    const playlists = [{
-        name: 'skipidypaparabajhjjbjb'
-    },{
-        name: 'gjj'
-    },{
-        name: 'ldk'
-    },
-    {
-        name: ',jk'
-    },{
-        name: '.,/gjj'
-    },{
-        name: 'dfgf'
-    },
-]
+    const playlists = Object.keys(playlistsObj)
     const [fontLoaded] = useFonts(
         {
             Rowdies: require('../assets/fonts/Rowdies-Regular.ttf')
         }
     )
-
-
-
- 
-
 
     return <>
     <View style={{...styles.menu, left: opened ? 0 : -140}}>
@@ -53,33 +37,37 @@ export default ({opened, closeMenu}) => {
             <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple('rgba(119, 122, 120 .5)', false)}
             onPress={() => {
                 if (!deletePlaylists) {
-                    setOpenedPlaylist(item.name)
+                    setOpenedPlaylist(item)
                     navigation.navigate('Playlist', {
-                        playlistName: item.name
+                        playlistName: item
                     })
                     return
                 }
-                if (playlistsToDelete.includes(item.name)) {
+                if (playlistsToDelete.includes(item)) {
                     const playlists = []
                     playlistsToDelete.forEach(playlist => {
-                        if (playlist === item.name) return
+                        if (playlist === item) return
                         playlists.push(playlist)
                     })
                     setPlaylistsToDelete(playlists)
                     return
                 }
-                setPlaylistsToDelete([...playlistsToDelete, item.name])
+                setPlaylistsToDelete([...playlistsToDelete, item])
 
             }}>
-                <View style={deletePlaylists ? {...styles.playlist, ...styles.deletingPlaylists} : openedPlaylist === item.name ? {...styles.playlist, backgroundColor: 'rgb(191, 141, 4)'} : styles.playlist}>
+                <View style={deletePlaylists ? {...styles.playlist, ...styles.deletingPlaylists} : openedPlaylist === item ? {...styles.playlist, backgroundColor: 'rgb(191, 141, 4)'} : styles.playlist}>
                     <Text style={{fontFamily: font(fontLoaded), textAlign: 'center', fontSize: 16, color: '#fff', paddingLeft: 4, paddingRight: 4, width: '100%', flexShrink: 1}}>
-                        {item.name}
+                        {item}
                     </Text>
-                    {deletePlaylists && <Checkbox checked={playlistsToDelete.includes(item.name)} style={{width: 14, flexShrink: 0, flexGrow: 0, marginRight: 4}}/>}
+                    {deletePlaylists && <Checkbox checked={playlistsToDelete.includes(item)} style={{width: 14, flexShrink: 0, flexGrow: 0, marginRight: 4}}/>}
                 </View>
             </TouchableNativeFeedback>}/>
         <PlaylistButton style={styles.controls}
-        onPress={() => {
+        onPress={deletePlaylists ? () => {
+            LayoutAnimation.easeInEaseOut()
+            state.deletePlaylists(playlistsToDelete)
+            setDeletePlaylists(false)
+        } : () => {
             LayoutAnimation.easeInEaseOut()
             setCreatePlaylist(true)
             }}
@@ -95,14 +83,12 @@ export default ({opened, closeMenu}) => {
                 }}
         />
     </View>
-    {createPlaylist && <CreateNewPlaylist fontFamily={font(fontLoaded)} playlists={playlists.map(playlist => playlist.name)} closeCreatingPlaylistPrompt={() => {
+    {createPlaylist && <CreateNewPlaylist fontFamily={font(fontLoaded)} playlists={playlists} closeCreatingPlaylistPrompt={() => {
         LayoutAnimation.easeInEaseOut()
         setCreatePlaylist(false)
         }}/>}
     </>
-
-     
-}
+})
 
 const styles = StyleSheet.create({
     menu: {

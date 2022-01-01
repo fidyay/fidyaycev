@@ -1,53 +1,38 @@
-import React, { useState } from "react"
+import React, { useState, useContext, useEffect, useCallback } from "react"
 import { View, FlatList, StyleSheet, Text } from "react-native"
-import FolderComponent from "./FolderComponent.js"
 import SongFile from "./SongFile.js"
 import font from "../functions/font.js"
 import { useFonts } from "expo-font"
 import FilesButton from "./PlaylistButton.js"
-import Arrow from "../svg_components/Arrow.jsx"
+import * as MediaLibrary from "expo-media-library"
+import { Status } from "../App.js"
+import state from "../global-state/state.js"
+import MusicInfo from "expo-music-info"
 
-export default ({navigation}) => {
-    const foldersData = [
-        {
-            name: 'abvgd'
-        },
-        {
-            name: 'ejz'
-        },
-        {
-            name: 'iklm'
-        }
-    ]
-    const songsData = [
-        {
-            name: 'abvgd.mp3',
-            file: true
-        },
-        {
-            name: 'dnkjn.mp3',
-            file: true
-        },
-        {
-            name: 'prelast.mp3',
-            file: true
-        },
-        {
-            name: 'last.mp3',
-            file: true
-        },
-    ]
 
+export default ({navigation, route}) => {
+    const { playlistName } = route.params
+    const [songsData, setSongData] = useState([])
     const [fontLoaded] = useFonts(
         {
             Rowdies: require('../assets/fonts/Rowdies-Regular.ttf')
         }
     )
-
-    const startingPath = '/storage/emulated/0'
-
+    const status = useContext(Status)
     const [songsToAdd, setSongsToAdd] = useState([])
-    const [currentPath, setCurrentPath] = useState(startingPath)
+    const keyExtractor = useCallback((_, index) => index.toString(), [])
+
+    useEffect(async () => {
+        if (!status.granted) return
+        let assets = await MediaLibrary.getAssetsAsync({
+            mediaType: MediaLibrary.MediaType.audio
+        })
+        assets = await MediaLibrary.getAssetsAsync({
+            mediaType: MediaLibrary.MediaType.audio,
+            first: assets.totalCount
+        })
+        setSongData(assets.assets.filter(asset => asset.duration >= 150))
+    }, [status])
     return (
         <View style={styles.screen}>
             <View style={styles.buttonWrapper}>
@@ -61,7 +46,17 @@ export default ({navigation}) => {
                 />
                 <FilesButton
                     title="Add files"
-                    onPress={() => {
+                    onPress={async () => {
+                        const chosenSongs = []
+                        songsToAdd.forEach(id => {
+                            const songInfo = songsData.find(song => song.id === id)
+                            chosenSongs.push(songInfo)
+                        })
+                        const songsMetadata = await Promise.all(chosenSongs.map(song => MusicInfo.getMusicInfoAsync(song.uri, {
+                            title: true,
+                            artist: true
+                        })))
+                        console.log(songsMetadata)
                         navigation.goBack()
                     }}
                     disabled={songsToAdd.length === 0}
@@ -70,15 +65,7 @@ export default ({navigation}) => {
                 />
             </View>
             <Text style={{...styles.title, fontFamily: font(fontLoaded)}}>Choose files</Text>
-            <Text style={{...styles.path, fontFamily: font(fontLoaded)}}>{currentPath}</Text>
-            <View style={{...styles.buttonWrapper, justifyContent: currentPath !== startingPath ? 'space-between' : 'flex-end'}}>
-                {currentPath !== startingPath && <Arrow
-                    style={{width: 23}}
-                    onPress={() => {
-                        const index = currentPath.lastIndexOf('/')
-                        setCurrentPath(currentPath.slice(0, index))
-                    }}
-                />}
+            <View style={{...styles.buttonWrapper, justifyContent: 'flex-end'}}>
                 <FilesButton
                     title={songsToAdd.length !== songsData.length ? 'Select all' : 'Deselect all'}
                     textStyle={{...styles.buttonText, fontFamily: font(fontLoaded)}}
@@ -88,35 +75,31 @@ export default ({navigation}) => {
                             setSongsToAdd([])
                             return
                         }
-                        setSongsToAdd([...songsData.map(song => song.name)])
+                        setSongsToAdd([...songsData.map(song => song.id)])
 
                     }}
                 />
             </View>
-            <View style={styles.list}>
-                <FlatList keyExtractor={(_, index) => index.toString()} data={[...foldersData, ...songsData]} renderItem={({item}) => {
-                    return item.file ? 
-                    <SongFile songName={item.name} fontFamily={font(fontLoaded)} checked={songsToAdd.includes(item.name)}
-                        onPress={() => {
-                            if (songsToAdd.includes(item.name)) {
-                                const newSongsToAdd = []
-                                for (const song of songsToAdd) {
-                                    if (song === item.name) continue
-                                    newSongsToAdd.push(song)
-                                }
-                                setSongsToAdd([...newSongsToAdd])
+            <FlatList style={{flexShrink: 1, width: '100%'}} maxToRenderPerBatch={23} windowSize={23} keyExtractor={keyExtractor} data={songsData} renderItem={({item}) => 
+                <SongFile songName={item.filename} fontFamily={font(fontLoaded)} checked={songsToAdd.includes(item.id)}
+                    onPress={() => {
+                        console.log( 'state: ',songsToAdd)
+                        const { id } = item
+                        if (songsToAdd.includes(id)) {
+                                const otherSongsToAdd = []
+                                songsToAdd.forEach(songId => {
+                                    if (songId === id) return
+                                    otherSongsToAdd.push(songId)
+                                })
+                                setSongsToAdd(otherSongsToAdd)
                                 return
-                            } 
-                            setSongsToAdd([...songsToAdd, item.name])
-                        }}
-                    />
-                    :
-                    <FolderComponent onPress={() => {
-                        setCurrentPath(currentPath + `/${item.name}`)
-                    }} folderName={item.name} fontFamily={font(fontLoaded)}/>
-                }}/>
-            </View>
-            
+                        }
+                        const newIdList = [...songsToAdd]
+                        newIdList.push(id)
+                        console.log(newIdList)
+                        setSongsToAdd(newIdList)
+                    }}
+            />}/>
         </View>
     )
 }
@@ -148,12 +131,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         color: '#fff'
-    },
-    path: {
-        color: '#fff',
-        fontSize: 15,
-        paddingRight: 10,
-        paddingLeft: 10
     },
     list: {
         width: '100%',

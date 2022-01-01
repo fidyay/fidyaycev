@@ -6,10 +6,13 @@ import { useFonts } from 'expo-font';
 import PlaylistButton from './PlaylistButton.js';
 import Dots from '../svg_components/Dots.jsx';
 import PlaylistOptions from './PlaylistOptions.js';
-import ClearPlaylistConfirmation from "./ClearPlaylistConfirmation.js";
+import ClearPlaylistConfirmation from './ClearPlaylistConfirmation.js';
+import { observer } from 'mobx-react-lite';
+import state from '../global-state/state.js';
 
 
-export default ({navigation, route}) => {
+export default observer(({navigation, route}) => {
+    const [appState] = useState(state)
     const { playlistName } = route.params
     const optY = useRef(0)
     const [chosenSong, selectSong] = useState('')
@@ -17,225 +20,7 @@ export default ({navigation, route}) => {
     const [songsToDelete, setSongsToDelete] = useState([])
     const [optionsOpened, setOptionsOpened] = useState(false)
     const [clearConfirmationOpened, setClearConfirmationOpened] = useState(false)
-
-    const data = [
-        {
-            id: 'abbjh',
-            name: "I'm machine",
-            author: 'Three days grace',
-            duration: 206
-        },
-        {
-            id: 'abbjj',
-            name: "Boulevard of broken dreams",
-            author: 'Green day',
-            duration: 288
-        },
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Holiday",
-            author: 'Green day',
-            duration: 282
-        },
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Holiday",
-            author: 'Green day',
-            duration: 282
-        },
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Holiday",
-            author: 'Green day',
-            duration: 282
-        },
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Holiday",
-            author: 'Green day',
-            duration: 282
-        },
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Holiday",
-            author: 'Green day',
-            duration: 282
-        },
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Holiday",
-            author: 'Green day',
-            duration: 282
-        },
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Holiday",
-            author: 'Green day',
-            duration: 282
-        },
-
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Holiday",
-            author: 'Green day',
-            duration: 282
-        },
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Holiday",
-            author: 'Green day',
-            duration: 282
-        },
-
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Holiday",
-            author: 'Green day',
-            duration: 282
-        },
-        
-        {
-            id: 'abbjk',
-            name: "Christmas truce",
-            author: 'Sabaton',
-            duration: 519
-        },
-        {
-            id: 'abbjah',
-            name: "Never too late",
-            author: 'Three days grace',
-            duration: 216
-        },
-        {
-            id: 'abbjkl',
-            name: "Last",
-            author: 'Green day',
-            duration: 282
-        }
-        
-
-    ]
-
+    const data = appState.playlists[playlistName]
     const [fontLoaded] = useFonts(
         {
             Rowdies: require('../assets/fonts/Rowdies-Regular.ttf')
@@ -330,7 +115,7 @@ export default ({navigation, route}) => {
 
     </>
     )
-}
+})
 
 const styles = StyleSheet.create({
     screen: {

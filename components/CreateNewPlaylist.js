@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, StyleSheet, LayoutAnimation } from "react-native";
-import PromtButton from './PlaylistButton.js'
+import { View, Text, TextInput, StyleSheet } from "react-native";
+import PromtButton from "./PlaylistButton.js";
+import state from "../global-state/state.js";
+import { observer } from "mobx-react-lite";
 
-export default ({playlists, closeCreatingPlaylistPrompt, fontFamily}) => {
+export default observer(({playlists, closeCreatingPlaylistPrompt, fontFamily}) => {
     const [playlistName, setPlaylistName] = useState('')
     const cantCreate = playlistName === '' || playlists.includes(playlistName)
     return (
@@ -19,12 +21,13 @@ export default ({playlists, closeCreatingPlaylistPrompt, fontFamily}) => {
                     <PromtButton style={{borderRadius: 5}} textStyle={{...styles.button, fontFamily}} title="Cancel" onPress={closeCreatingPlaylistPrompt}/>
                     <PromtButton onPress={() => {
                         closeCreatingPlaylistPrompt()
+                        state.createPlaylist(playlistName)
                     }} style={{borderRadius: 5}} textStyle={{...styles.button, fontFamily, color: cantCreate ? '#ccc' : '#fff'}} disabled={cantCreate} title="Create"/>
                 </View>
             </View>
         </View>
     )
-}
+})
 
 const styles = StyleSheet.create({
     wrapper: {
