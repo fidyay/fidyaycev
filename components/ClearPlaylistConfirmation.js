@@ -1,18 +1,20 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import ConfirmationButton from './PlaylistButton.js'
+import state from "../global-state/state.js";
 
 export default ({playlistName, closeCreatingPlaylistPrompt, fontFamily}) => {
     return (
         <View style={styles.wrapper}>
             <View style={styles.confirmation}>
                 <Text style={{...styles.title, fontFamily}}>
-                    Clear playlist {playlistName}
+                    Clear playlist "{playlistName}"
                 </Text>
                 <View style={styles.buttonWrapper}>
                     <ConfirmationButton style={{borderRadius: 5}} textStyle={{...styles.button, fontFamily}} title="Cancel" onPress={closeCreatingPlaylistPrompt}/>
                     <ConfirmationButton onPress={() => {
                         closeCreatingPlaylistPrompt()
+                        state.clearPlaylist(playlistName)
                     }} style={{borderRadius: 5}} textStyle={{...styles.button, fontFamily}} title="Clear"/>
                 </View>
             </View>

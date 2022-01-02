@@ -9,6 +9,9 @@ import Slider from "./Slider.js"
 import { useFonts } from "expo-font"
 import font from "../functions/font.js"
 import { useWindowDimensions } from "react-native"
+import { Audio } from "expo-av"
+import { observer } from "mobx-react-lite"
+import state from "../global-state/state.js"
 
 const setNewX = (X, width) => {
     if ( X < 0 ) return 0
@@ -16,8 +19,7 @@ const setNewX = (X, width) => {
     return X
 }
 
-export default () => {
-    const [playing, setPlaying] = useState(true)
+export default observer(({currentSong}) => {
     const player = useRef(null)
     const [width, setWidth] = useState()
     const [X, setX] = useState(0)
@@ -25,6 +27,28 @@ export default () => {
     const [shuffled, setShuffled] = useState(false)
     const [repeatPlaylist, setRepeatPlaylist] = useState(false)
     const [repeatSong, setRepeatSong] = useState(false)
+    const [playbackObj, setPlaybackObj] = useState(null)
+    const [soundObj, setSoundObj] = useState(null)
+    const songId = useRef(currentSong.id)
+
+    const handleAudioPress = async song => {
+        if (soundObj === null || songId.current !== currentSong.id) {
+            const playbackObject = new Audio.Sound()
+            const status = await playbackObject.loadAsync({uri: song.uri}, {shouldPlay: true})
+            setPlaybackObj(playbackObject)
+            setSoundObj(status)
+            return
+        }
+        if (soundObj.isLoaded && soundObj.isPlaying) {
+           const status = await playbackObj.setStatus({shouldPlay: false})
+           setSoundObj(status)
+           return
+        }
+        if (soundObj.isLoaded && !soundObj.isPlaying && currentSong.id === songId) {
+            const status = await playbackObj.playAsync()
+            setSoundObj(status)
+        }
+    }
 
     const [fontLoaded] = useFonts(
         {   
@@ -34,6 +58,7 @@ export default () => {
 
     const sliderUsing = useRef(false)
     return (
+        currentSong.id ?
         <View
         onStartShouldSetResponder={() => true}
         onMoveShouldSetResponder={() => {
@@ -51,12 +76,12 @@ export default () => {
             sliderUsing.current = false
         }}
         ref={player} style={styles.player}>
-            <Text style={{...styles.songName, fontFamily: font(fontLoaded)}}>Song's name</Text>
-            <Text style={{...styles.songAuthor, fontFamily: font(fontLoaded)}}>Song's author</Text>
+            <Text style={{...styles.songName, fontFamily: font(fontLoaded)}}>{state.playlists[currentSong.playlistName].find(song => song.id = currentSong.id)?.title}</Text>
+            <Text style={{...styles.songAuthor, fontFamily: font(fontLoaded)}}>{state.playlists[currentSong.playlistName].find(song => song.id = currentSong.id)?.artist}</Text>
             <View style={styles.controls}>
                 <View style={styles.playSkipWrapper}>
                     <Skip style={{...styles.button, marginLeft: 0}}/>
-                    <PlayPause playing={playing} onPress={() => setPlaying(!playing)} style={{...styles.button, width: 34}}/>
+                    <PlayPause playing={!!soundObj && soundObj.isPlaying} onPress={() => handleAudioPress(currentSong)} style={{...styles.button, width: 34}}/>
                     <Skip style={styles.button} next/>
                 </View>
                 <View style={styles.repeatAndShuffleWrapper}>
@@ -74,9 +99,11 @@ export default () => {
                 </Text>
             </View>
             
-        </View>
+        </View> 
+        :
+        null
     )
-}
+})
 
 const styles = StyleSheet.create({
     player: {

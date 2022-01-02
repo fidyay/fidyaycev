@@ -1,10 +1,11 @@
-import React from "react"
+import React, { memo } from "react"
 import { TouchableNativeFeedback, View, Text, StyleSheet } from "react-native"
 import workWithSongDuration from "../functions/workWithSongDuration.js"
 import Checkbox from "../svg_components/Checkbox.jsx"
 
 
-export default ({chosen, name, author, duration, fontFamily, onPress, selected, deleteSongs}) => {
+
+export default memo(({chosen, name, author, duration, fontFamily, onPress, selected, deleteSongs}) => {
     return (
     <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple('rgba(119, 122, 120 .5)', false)}
         onPress={onPress}>
@@ -20,7 +21,11 @@ export default ({chosen, name, author, duration, fontFamily, onPress, selected, 
             </View>
     </TouchableNativeFeedback>
     )
-}
+}, (prevProps, nextProps) => {
+    if (prevProps.chosen === nextProps.chosen && prevProps.fontFamily === nextProps.fontFamily && 
+        prevProps.onPress === nextProps.onPress && prevProps.selected === nextProps.selected && `${prevProps.deleteSongs}` === `${nextProps.deleteSongs}`) return true
+    return false
+})
 
 const styles = StyleSheet.create({
     song: {

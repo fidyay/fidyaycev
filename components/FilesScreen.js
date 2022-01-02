@@ -12,6 +12,7 @@ import MusicInfo from "expo-music-info"
 
 export default ({navigation, route}) => {
     const { playlistName } = route.params
+    const [songsAdded, setSongsAdded] = useState(false)
     const [songsData, setSongData] = useState([])
     const [fontLoaded] = useFonts(
         {
@@ -21,6 +22,23 @@ export default ({navigation, route}) => {
     const status = useContext(Status)
     const [songsToAdd, setSongsToAdd] = useState([])
     const keyExtractor = useCallback((_, index) => index.toString(), [])
+
+    const renderItem = useCallback(({item}) => 
+    <SongFile songName={item.filename} fontFamily={font(fontLoaded)} checked={songsToAdd.includes(item.id)}
+        onPress={() => {
+            const { id } = item
+            if (songsToAdd.includes(id)) {
+                    const otherSongsToAdd = []
+                    songsToAdd.forEach(songId => {
+                        if (songId === id) return
+                        otherSongsToAdd.push(songId)
+                    })
+                    setSongsToAdd(otherSongsToAdd)
+                    return
+            }
+            setSongsToAdd([...songsToAdd, id])
+        }}
+/>, [fontLoaded, `${songsToAdd}`])
 
     useEffect(async () => {
         if (!status.granted) return
@@ -47,6 +65,7 @@ export default ({navigation, route}) => {
                 <FilesButton
                     title="Add files"
                     onPress={async () => {
+                        setSongsAdded(true)
                         const chosenSongs = []
                         songsToAdd.forEach(id => {
                             const songInfo = songsData.find(song => song.id === id)
@@ -56,11 +75,28 @@ export default ({navigation, route}) => {
                             title: true,
                             artist: true
                         })))
-                        console.log(songsMetadata)
+                        state.addSongs(playlistName, [
+                            ...chosenSongs.map((song, index) => {
+                                let title
+                                if (songsMetadata[index]?.title) {
+                                    title = songsMetadata[index].title
+                                } else {
+                                    const dotIndex = song.filename.lastIndexOf('.')
+                                    title = song.filename.slice(0, dotIndex)
+                                }
+                                return {
+                                    id: song.id,
+                                    uri: song.uri,
+                                    duration: song.duration,
+                                    title,
+                                    artist: songsMetadata[index]?.artist ? songsMetadata[index].artist : 'unknown'
+                                }
+                            })
+                        ])
                         navigation.goBack()
                     }}
-                    disabled={songsToAdd.length === 0}
-                    textStyle={{...styles.buttonText, color: songsToAdd.length === 0 ? '#ccc' : '#fff', fontFamily: font(fontLoaded)}}
+                    disabled={songsToAdd.length === 0 || songsAdded}
+                    textStyle={{...styles.buttonText, color: songsToAdd.length === 0 || songsAdded ? '#ccc' : '#fff', fontFamily: font(fontLoaded)}}
                     style={styles.button}
                 />
             </View>
@@ -80,26 +116,7 @@ export default ({navigation, route}) => {
                     }}
                 />
             </View>
-            <FlatList style={{flexShrink: 1, width: '100%'}} maxToRenderPerBatch={23} windowSize={23} keyExtractor={keyExtractor} data={songsData} renderItem={({item}) => 
-                <SongFile songName={item.filename} fontFamily={font(fontLoaded)} checked={songsToAdd.includes(item.id)}
-                    onPress={() => {
-                        console.log( 'state: ',songsToAdd)
-                        const { id } = item
-                        if (songsToAdd.includes(id)) {
-                                const otherSongsToAdd = []
-                                songsToAdd.forEach(songId => {
-                                    if (songId === id) return
-                                    otherSongsToAdd.push(songId)
-                                })
-                                setSongsToAdd(otherSongsToAdd)
-                                return
-                        }
-                        const newIdList = [...songsToAdd]
-                        newIdList.push(id)
-                        console.log(newIdList)
-                        setSongsToAdd(newIdList)
-                    }}
-            />}/>
+            <FlatList style={{flexShrink: 1, width: '100%'}} maxToRenderPerBatch={23} windowSize={23} keyExtractor={keyExtractor} data={songsData} renderItem={renderItem}/>
         </View>
     )
 }

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useContext } from 'react';
 import { View, FlatList, Text, StyleSheet, LayoutAnimation } from 'react-native';
 import font from '../functions/font.js';
 import PlaylistSong from './PlaylistSong.js';
@@ -9,13 +9,16 @@ import PlaylistOptions from './PlaylistOptions.js';
 import ClearPlaylistConfirmation from './ClearPlaylistConfirmation.js';
 import { observer } from 'mobx-react-lite';
 import state from '../global-state/state.js';
+import { Status } from '../App.js'
+import * as MediaLibrary from 'expo-media-library'
 
 
 export default observer(({navigation, route}) => {
+    const status = useContext(Status)
     const [appState] = useState(state)
     const { playlistName } = route.params
     const optY = useRef(0)
-    const [chosenSong, selectSong] = useState('')
+    const chosenSong = appState.currentSong.id
     const [deleteSongs, setDeleteSongs] = useState('')
     const [songsToDelete, setSongsToDelete] = useState([])
     const [optionsOpened, setOptionsOpened] = useState(false)
@@ -26,6 +29,41 @@ export default observer(({navigation, route}) => {
             Rowdies: require('../assets/fonts/Rowdies-Regular.ttf')
         }
     )
+    const keyExtractor = useCallback((_, index) => index.toString(), [])
+
+    const renderItem = useCallback(({item}) => {
+        return <PlaylistSong onPress={deleteSongs ? () => {
+            if (songsToDelete.includes(item.id)) {
+                const newSongsToDelete = []
+                songsToDelete.forEach(id => {
+                    if (id === item.id) return
+                    newSongsToDelete.push(id)
+                })
+                setSongsToDelete(newSongsToDelete)
+                return
+            } 
+            setSongsToDelete([...songsToDelete, item.id])
+            } : () => {
+                appState.setCurrentSong({
+                    id: item.id,
+                    uri: item.uri,
+                    playlistName
+                })
+                if (chosenSong === item.id) {
+                    navigation.navigate('Music')
+                }
+            }} 
+            name={item.title}
+            author={item.artist}
+            duration={Math.floor(Number(item.duration))}
+            chosen={!deleteSongs && chosenSong === item.id}
+            fontFamily={font(fontLoaded)}
+            selected={deleteSongs && songsToDelete.includes(item.id)}
+            deleteSongs={deleteSongs}
+        />
+    }, [deleteSongs, `${songsToDelete}`, fontLoaded, chosenSong])
+
+
     return (
 <>
     <View style={styles.screen}>
@@ -40,6 +78,15 @@ export default observer(({navigation, route}) => {
                 <View style={{display: 'flex', alignItems: 'flex-end'}}>
                     <PlaylistButton disabled={songsToDelete.length === 0} title={deleteSongs} onPress={() => {
                         LayoutAnimation.easeInEaseOut()
+                        if (deleteSongs === 'Delete from playlist') {
+                            appState.removeFromPlaylist(playlistName, songsToDelete)
+                        }
+                        if (deleteSongs === 'Delete from device') {
+                            appState.removeFromPlaylist(playlistName, songsToDelete)
+                            if (status.granted) {
+                                MediaLibrary.deleteAssetsAsync(songsToDelete)
+                            }
+                        }
                         setDeleteSongs('')
                         }}
                         style={{borderRadius: 5}} textStyle={{...styles.controlsButton, fontFamily: font(fontLoaded), color: songsToDelete.length === 0 ? '#ccc' : '#fff'}}
@@ -63,33 +110,7 @@ export default observer(({navigation, route}) => {
             }
             
         </View>
-        <FlatList keyExtractor={(_, index) => index.toString()} data={data} renderItem={({item}) => {
-            return <PlaylistSong onPress={deleteSongs ? () => {
-                if (songsToDelete.includes(item.id)) {
-                    const newSongsToDelete = []
-                    songsToDelete.forEach(id => {
-                        if (id === item.id) return
-                        newSongsToDelete.push(id)
-                    })
-                    setSongsToDelete(newSongsToDelete)
-                    return
-                } 
-                setSongsToDelete([...songsToDelete, item.id])
-                } : () => {
-                    selectSong(item.id)
-                    if (chosenSong === item.id) {
-                        navigation.navigate('Music')
-                    }
-                }} 
-                name={item.name}
-                author={item.author}
-                duration={item.duration}
-                chosen={!deleteSongs && chosenSong === item.id}
-                fontFamily={font(fontLoaded)}
-                selected={deleteSongs && songsToDelete.includes(item.id)}
-                deleteSongs={deleteSongs}
-            />
-        }}/>
+        <FlatList maxToRenderPerBatch={15} windowSize={5} keyExtractor={keyExtractor} data={data} renderItem={renderItem}/>
     </View>
     {optionsOpened && !deleteSongs && <PlaylistOptions Y={optY.current} fontFamily={font(fontLoaded)}
                     openClearConfirmation={() => {
@@ -108,7 +129,7 @@ export default observer(({navigation, route}) => {
                         navigation.navigate('Choose files', {playlistName})
                         }}
                 />}
-    {clearConfirmationOpened && <ClearPlaylistConfirmation fontFamily={font(fontLoaded)}  playlistName={'PlaylistName'} closeCreatingPlaylistPrompt={() => {
+    {clearConfirmationOpened && <ClearPlaylistConfirmation fontFamily={font(fontLoaded)}  playlistName={playlistName} closeCreatingPlaylistPrompt={() => {
         LayoutAnimation.easeInEaseOut()
         setClearConfirmationOpened(false)
         }}/>}

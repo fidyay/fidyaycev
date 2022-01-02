@@ -1,4 +1,4 @@
-import { makeAutoObservable, when, autorun, action } from 'mobx'
+import { makeAutoObservable, when, autorun } from 'mobx'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 class State {
@@ -15,6 +15,7 @@ class State {
             }
         })
         autorun(() => {
+            console.log(this.currentSong)
             if (JSON.stringify(this) === '{"playlists":{},"currentSong":{}}') return
             AsyncStorage.setItem('state', JSON.stringify(this))
         })
@@ -22,8 +23,8 @@ class State {
     addSongs(playlistName, songs) {
         this.playlists[playlistName].push(...songs)
     }
-    setCurrentSong(song) {
-        this.currentSong = song
+    setCurrentSong({id, playlistName, uri}) {
+        this.currentSong = {id, playlistName, uri}
     }
     createPlaylist(playlistName) {
         this.playlists[playlistName] = []
@@ -32,6 +33,14 @@ class State {
         for (let playlist of playlistsArr) {
             delete this.playlists[playlist]
         }
+    }
+    clearPlaylist(playlistName) {
+        this.playlists[playlistName] = []
+    }
+    removeFromPlaylist(playlistName, songIds) {
+        this.playlists[playlistName] = [
+            ...this.playlists[playlistName].filter(song => !songIds.includes(song.id))
+        ]
     }
 }
 

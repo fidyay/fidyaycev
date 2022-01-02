@@ -19,7 +19,7 @@ export default memo(({songName, checked, fontFamily, onPress}) => {
     </TouchableNativeFeedback>
     )
 }, (prevProps, nextProps) => {
-    if (prevProps.checked === nextProps.checked && prevProps.fontFamily === nextProps.fontFamily) return true
+    if (prevProps.checked === nextProps.checked && prevProps.fontFamily === nextProps.fontFamily && prevProps.onPress === nextProps.onPress) return true
     return false
 })
 

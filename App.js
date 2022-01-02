@@ -44,7 +44,7 @@ export default function App() {
               <Stack.Screen name="Playlist" initialParams={{playlistName: "Default"}} component={PlaylistScreen}/>
               <Stack.Screen name="Music" component={MusicScreen}/>
             </Stack.Navigator>
-          <Player/>
+          <Player currentSong={state.currentSong}/>
         </NavigationContainer>
       </Status.Provider>
     </View>
