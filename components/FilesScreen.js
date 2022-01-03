@@ -116,7 +116,7 @@ export default ({navigation, route}) => {
                     }}
                 />
             </View>
-            <FlatList style={{flexShrink: 1, width: '100%'}} maxToRenderPerBatch={23} windowSize={23} keyExtractor={keyExtractor} data={songsData} renderItem={renderItem}/>
+            <FlatList style={{flexShrink: 1, width: '100%', backgroundColor: 'rgba(0, 0, 0, .2)'}} maxToRenderPerBatch={23} windowSize={23} keyExtractor={keyExtractor} data={songsData} renderItem={renderItem}/>
         </View>
     )
 }

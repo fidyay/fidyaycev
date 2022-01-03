@@ -9,7 +9,7 @@ export default memo(({chosen, name, author, duration, fontFamily, onPress, selec
     return (
     <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple('rgba(119, 122, 120 .5)', false)}
         onPress={onPress}>
-            <View style={{...styles.song, backgroundColor: chosen ? 'rgba(255, 113, 91, .5)' : 'rgba(0, 0, 0, .2)'}}>
+            <View style={{...styles.song, backgroundColor: chosen ? 'rgba(255, 113, 91, .5)' : 'transparent'}}>
                 <View style={styles.nameAndAuthorWrapper}>
                     <Text style={{...styles.name, fontFamily}}>{name}</Text>
                     <Text style={{...styles.author, fontFamily}}>{author}</Text>

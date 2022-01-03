@@ -25,7 +25,6 @@ export default memo(({songName, checked, fontFamily, onPress}) => {
 
 const styles = StyleSheet.create({
     file: {
-        backgroundColor: 'rgba(0, 0, 0, .2)',
         paddingTop: 5,
         paddingBottom: 5,
         paddingLeft: 10,

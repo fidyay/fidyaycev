@@ -2,15 +2,19 @@ import React, { useState } from "react"
 import { View } from "react-native"
 
 
-export default ({style, X, setWidth, setX, setNewX, width, sliderUsing}) => {
+export default ({style, X, setWidth, setX, setNewX, width, sliderUsing, playbackObj, soundObj}) => {
     return (
         <View style={{...style, backgroundColor: '#000', height: 5}}
         onStartShouldSetResponder={() => {
             sliderUsing.current = true
             return true
         }}
-        onMoveShouldSetResponder={() => {
+        onMoveShouldSetResponder={async () => {
             sliderUsing.current = true
+            if (soundObj.isPlaying) {
+                const status = await playbackObj?.pauseAsync()
+                setSoundObj(status)
+            }
             return true
         }}
         onResponderGrant={evt => {

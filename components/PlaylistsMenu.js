@@ -15,7 +15,7 @@ import state from '../global-state/state.js'
 export default observer(({opened, closeMenu, playlistsObj}) => {
     const navigation = useNavigation()
     const [deletePlaylists, setDeletePlaylists] = useState(false)
-    const [openedPlaylist, setOpenedPlaylist] = useState('')
+    const [openedPlaylist, setOpenedPlaylist] = useState('Default')
     const [playlistsToDelete, setPlaylistsToDelete] = useState([])
     const [createPlaylist, setCreatePlaylist] = useState(false)
     const playlists = Object.keys(playlistsObj)
@@ -43,6 +43,7 @@ export default observer(({opened, closeMenu, playlistsObj}) => {
                     })
                     return
                 }
+                if (item === "Default") return
                 if (playlistsToDelete.includes(item)) {
                     const playlists = []
                     playlistsToDelete.forEach(playlist => {
@@ -59,7 +60,7 @@ export default observer(({opened, closeMenu, playlistsObj}) => {
                     <Text style={{fontFamily: font(fontLoaded), textAlign: 'center', fontSize: 16, color: '#fff', paddingLeft: 4, paddingRight: 4, width: '100%', flexShrink: 1}}>
                         {item}
                     </Text>
-                    {deletePlaylists && <Checkbox checked={playlistsToDelete.includes(item)} style={{width: 14, flexShrink: 0, flexGrow: 0, marginRight: 4}}/>}
+                    {(deletePlaylists && item !== 'Default') && <Checkbox checked={playlistsToDelete.includes(item)} style={{width: 14, flexShrink: 0, flexGrow: 0, marginRight: 4}}/>}
                 </View>
             </TouchableNativeFeedback>}/>
         <PlaylistButton style={styles.controls}

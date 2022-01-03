@@ -2,7 +2,9 @@ import { makeAutoObservable, when, autorun } from 'mobx'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 class State {
-    playlists = {}
+    playlists = {
+        Default: []
+    }
     currentSong = {}
     constructor () {
         makeAutoObservable(this)
@@ -15,7 +17,6 @@ class State {
             }
         })
         autorun(() => {
-            console.log(this.currentSong)
             if (JSON.stringify(this) === '{"playlists":{},"currentSong":{}}') return
             AsyncStorage.setItem('state', JSON.stringify(this))
         })

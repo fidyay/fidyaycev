@@ -110,7 +110,7 @@ export default observer(({navigation, route}) => {
             }
             
         </View>
-        <FlatList maxToRenderPerBatch={15} windowSize={5} keyExtractor={keyExtractor} data={data} renderItem={renderItem}/>
+        <FlatList style={styles.songList} maxToRenderPerBatch={15} windowSize={5} keyExtractor={keyExtractor} data={data} renderItem={renderItem}/>
     </View>
     {optionsOpened && !deleteSongs && <PlaylistOptions Y={optY.current} fontFamily={font(fontLoaded)}
                     openClearConfirmation={() => {
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between'
     },
     songList: {
-        zIndex: 0
+        backgroundColor: 'rgba(0, 0, 0, .2)'
     },
     playlistName: {
         fontSize: 15,
